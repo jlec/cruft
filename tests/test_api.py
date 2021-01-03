@@ -248,10 +248,7 @@ def test_diff_git_subdir(capfd, tmpdir):
     # not added & committed
     assert not cruft.update(project_dir)
     # Add & commit the changes so that the repo is clean
-    run(
-        ["git", "add", "."],
-        cwd=temp_dir,
-    )
+    run(["git", "add", "."], cwd=temp_dir)
     run(
         [
             "git",
