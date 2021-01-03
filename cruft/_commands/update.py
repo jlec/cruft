@@ -144,8 +144,24 @@ def _apply_patch_with_rejections(diff: str, expanded_dir_path: Path):
 
 def _apply_three_way_patch(diff: str, expanded_dir_path: Path):
     try:
+        offset = (
+            run(
+                ["git", "rev-parse", "--show-prefix"],
+                stderr=PIPE,
+                stdout=PIPE,
+                check=True,
+                cwd=expanded_dir_path,
+            )
+            .stdout.decode()
+            .strip()
+        )
+
+        git_apply = ["git", "apply", "-3"]
+        if len(offset) > 0:
+            git_apply.extend(["--directory", offset])
+
         run(
-            ["git", "apply", "-3"],
+            git_apply,
             input=diff.encode(),
             stderr=PIPE,
             stdout=PIPE,
@@ -156,7 +172,7 @@ def _apply_three_way_patch(diff: str, expanded_dir_path: Path):
         typer.secho(error.stderr.decode(), err=True)
         if _is_project_repo_clean(expanded_dir_path):
             typer.secho(
-                "Failed to apply the update. Retrying again with a different update stratergy.",
+                "Failed to apply the update. Retrying again with a different update strategy.",
                 fg=typer.colors.YELLOW,
             )
             _apply_patch_with_rejections(diff, expanded_dir_path)
